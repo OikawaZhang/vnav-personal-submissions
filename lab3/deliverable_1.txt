@@ -1,0 +1,34 @@
+MIT VNAV 2023 - Lab 3, Deliverable 1
+Wenqian Zhang, Student ID 24020036087
+
+A. MESSAGE VS. TF
+
+1. Convert an incoming geometry_msgs::Quaternion to an existing
+   tf2::Quaternion:
+
+     tf2::fromMsg(quat_msg, quat_tf);
+
+2. Convert a tf2::Quaternion to a newly declared
+   geometry_msgs::Quaternion:
+
+     geometry_msgs::Quaternion quat_msg = tf2::toMsg(quat_tf);
+
+3. Access the scalar component:
+
+     double w = quat_tf.getW();
+
+B. CONVERSION
+
+1. Extract yaw from a tf2::Quaternion:
+
+     double yaw = tf2::getYaw(quat_t);
+
+2. Convert a geometry_msgs::Quaternion to an Eigen 3-by-3 rotation matrix:
+
+     Eigen::Quaterniond quat_eigen;
+     tf::quaternionMsgToEigen(quat_msg, quat_eigen);
+     Eigen::Matrix3d R = quat_eigen.normalized().toRotationMatrix();
+
+   Relevant headers include tf2_geometry_msgs/tf2_geometry_msgs.h,
+   tf2/utils.h, eigen_conversions/eigen_msg.h, and Eigen/Geometry.
+

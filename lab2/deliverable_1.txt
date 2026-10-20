@@ -1,0 +1,30 @@
+MIT VNAV 2023 - Lab 2, Deliverable 1
+Wenqian Zhang, Student ID 24020036087
+
+COMMANDS (one terminal per command)
+
+  roscore
+  rosrun tf2_ros static_transform_publisher 1 0 0 0 0 0 1 world av1 __name:=av1broadcaster
+  rosrun tf2_ros static_transform_publisher 0 0 1 0 0 0 1 world av2 __name:=av2broadcaster
+  rosrun two_drones_pkg plots_publisher_node
+  rosrun rviz rviz -d $(rospack find two_drones_pkg)/config/default.rviz
+
+NODE GRAPH
+
+The relevant application nodes are /av1broadcaster, /av2broadcaster,
+/plots_publisher_node, and /rviz (the ROS infrastructure node /rosout is not
+counted). Both static transform broadcasters publish their world-to-vehicle
+transforms on /tf_static. The plots node receives /tf and /tf_static through
+its tf2 listener and publishes the drone mesh and trail markers on /visuals.
+RViz subscribes to /visuals as well as /tf and /tf_static so that it can place
+the markers in the selected fixed frame.
+
+LAUNCH FILE BEHAVIOR
+
+When the static argument is true, the two static_transform_publisher nodes are
+started and the vehicles remain fixed. If the static argument is omitted, its
+default value is false. The <group if="$(arg static)"> block is therefore
+skipped and the node guarded by unless="$(arg static)" is launched instead.
+That node is frames_publisher_node, which continuously publishes the moving
+world-to-av1 and world-to-av2 transforms on /tf.
+

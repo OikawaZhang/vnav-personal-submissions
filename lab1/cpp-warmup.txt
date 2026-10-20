@@ -1,0 +1,64 @@
+MIT VNAV 2023 - Lab 1, C++ Warm-up
+Wenqian Zhang, Student ID 24020036087
+
+OPERATORS
+
+1. After executing
+
+       int i = 0;
+       int j = ++i;
+       j = i++;
+
+   the final values are i = 2 and j = 1. Prefix increment changes i before
+   producing its value, whereas postfix increment produces the old value and
+   then increments i.
+
+2. The conditional expression prints b. The condition i < 42 is false when
+   i is exactly 42, so the expression selects its second result.
+
+REFERENCES AND POINTERS
+
+1. The output is
+
+       10 10
+
+   The reference is an alias for the original integer, so changing the value
+   through either name changes the same object.
+
+2. The output is 1764. The pointer is dereferenced and the pointed-to value,
+   42, is multiplied by itself.
+
+3. The output is 0. The expression assigns i[2] = i[1] - i[3] = 24 - 24.
+
+4. The output is 0. The reference parameter aliases j, so reset(j) assigns 0
+   directly to j.
+
+NUMBERS
+
+1. C++ guarantees only minimum widths and an ordering of widths:
+
+       sizeof(short) <= sizeof(int) <= sizeof(long) <= sizeof(long long)
+
+   A short is at least 16 bits, an int at least 16 bits, a long at least
+   32 bits, and a long long at least 64 bits. Common modern implementations use
+   16, 32, 32 or 64, and 64 bits, respectively. Exact sizes are
+   implementation-defined and can be checked with sizeof.
+
+2. A float is commonly IEEE-754 binary32 (about 7 significant decimal digits),
+   while a double is commonly binary64 (about 15--16 digits). In
+
+       int i = 3.14;
+
+   the floating-point value is converted to int by discarding the fractional
+   part, so i is 3.
+
+3. Signed integer types can represent negative and positive values. Unsigned
+   arithmetic is modulo 2^N for an N-bit type. For an 8-bit unsigned char,
+
+       unsigned char c = -1;
+
+   stores 255 because -1 is reduced modulo 256.
+
+4. The final value of i is 0. A nonzero integer converts to true in the if
+   condition, so the first branch executes and assigns i = 0.
+

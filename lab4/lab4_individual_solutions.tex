@@ -1,0 +1,410 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+
+\newcommand{\R}{\mathbb{R}}
+
+\begin{document}
+
+\section*{Deliverable 1: Single-Segment Trajectory Optimization}
+
+Consider the minimum-velocity problem
+\begin{equation}
+    \min_{P(t)} J(P)
+    = \int_0^1 \left(P^{(1)}(t)\right)^2\,dt
+    \quad \text{subject to} \quad
+    P(0)=0, \qquad P(1)=1.
+\end{equation}
+Because $P(0)=0$, the constant coefficient of $P(t)$ is zero.
+
+\subsection*{1. Polynomial of degree 1}
+
+Let
+\begin{equation}
+    P(t)=p_1t.
+\end{equation}
+The terminal constraint gives
+\begin{equation}
+    P(1)=p_1=1.
+\end{equation}
+Therefore, $P'(t)=1$, and
+\begin{equation}
+    J(P)=\int_0^1 1^2\,dt=1.
+\end{equation}
+Hence,
+\begin{equation}
+    \boxed{P^*(t)=t, \qquad J^*=1.}
+\end{equation}
+
+\subsection*{2. Polynomial of degree 2}
+
+Let
+\begin{equation}
+    P(t)=p_1t+p_2t^2,
+    \qquad
+    \mathbf{p}=\begin{bmatrix}p_1 & p_2\end{bmatrix}^{T}.
+\end{equation}
+Then
+\begin{equation}
+    P'(t)=p_1+2p_2t.
+\end{equation}
+
+\paragraph{(a) Quadratic cost matrix.}
+Expanding and integrating the cost gives
+\begin{align}
+    J(P)
+    &=\int_0^1 (p_1+2p_2t)^2\,dt \\
+    &=\int_0^1
+      \left(p_1^2+4p_1p_2t+4p_2^2t^2\right)dt \\
+    &=p_1^2+2p_1p_2+\frac{4}{3}p_2^2.
+\end{align}
+Thus,
+\begin{equation}
+    J(P)=\mathbf{p}^{T}\mathbf{Q}\mathbf{p},
+    \qquad
+    \boxed{
+    \mathbf{Q}=\begin{bmatrix}
+        1 & 1 \\
+        1 & \frac{4}{3}
+    \end{bmatrix}.}
+\end{equation}
+
+\paragraph{(b) Equality constraint.}
+The condition $P(1)=1$ is
+\begin{equation}
+    p_1+p_2=1.
+\end{equation}
+Therefore,
+\begin{equation}
+    \boxed{
+    \mathbf{A}=\begin{bmatrix}1 & 1\end{bmatrix},
+    \qquad
+    \mathbf{b}=\begin{bmatrix}1\end{bmatrix}.}
+\end{equation}
+
+\paragraph{(c) Solution of the QP.}
+From the equality constraint,
+\begin{equation}
+    p_1=1-p_2.
+\end{equation}
+Substituting this expression into the objective gives
+\begin{align}
+    J(p_2)
+    &=(1-p_2)^2+2(1-p_2)p_2+\frac{4}{3}p_2^2 \\
+    &=1+\frac{1}{3}p_2^2.
+\end{align}
+The unique minimizer is $p_2=0$, which implies $p_1=1$.
+Consequently,
+\begin{equation}
+    \boxed{P^*(t)=t, \qquad J^*=1.}
+\end{equation}
+Allowing a quadratic term does not reduce the optimal cost.
+
+\subsection*{3. Polynomial of degree 3}
+
+Let
+\begin{equation}
+    P(t)=p_1t+p_2t^2+p_3t^3,
+    \qquad
+    \mathbf{p}=\begin{bmatrix}p_1 & p_2 & p_3\end{bmatrix}^{T}.
+\end{equation}
+
+\paragraph{(a) QP matrices.}
+For coefficient indices $i,j\in\{1,2,3\}$,
+\begin{equation}
+    Q_{ij}
+    =\int_0^1
+      \left(it^{i-1}\right)
+      \left(jt^{j-1}\right)dt
+    =\frac{ij}{i+j-1}.
+\end{equation}
+It follows that
+\begin{equation}
+    \boxed{
+    \mathbf{Q}=\begin{bmatrix}
+        1 & 1 & 1 \\
+        1 & \frac{4}{3} & \frac{3}{2} \\
+        1 & \frac{3}{2} & \frac{9}{5}
+    \end{bmatrix},
+    \qquad
+    \mathbf{A}=\begin{bmatrix}1 & 1 & 1\end{bmatrix},
+    \qquad
+    \mathbf{b}=\begin{bmatrix}1\end{bmatrix}.}
+\end{equation}
+
+\paragraph{(b) Solution of the QP.}
+The Cauchy--Schwarz inequality gives a degree-independent lower bound:
+\begin{align}
+    J(P)
+    &=\int_0^1 \left(P'(t)\right)^2dt \\
+    &\geq
+    \frac{\left(\int_0^1 P'(t)\,dt\right)^2}
+         {\int_0^1 1^2\,dt} \\
+    &=\left(P(1)-P(0)\right)^2 \\
+    &=1.
+\end{align}
+Equality holds if and only if $P'(t)$ is constant. The endpoint
+conditions then imply $P'(t)=1$, so
+\begin{equation}
+    p_1=1, \qquad p_2=0, \qquad p_3=0.
+\end{equation}
+Hence,
+\begin{equation}
+    \boxed{P^*(t)=t, \qquad J^*=1.}
+\end{equation}
+This result agrees with the Euler--Lagrange equation. When $r=1$,
+the Euler--Lagrange equation reduces to
+\begin{equation}
+    P^{(2)}(t)=0,
+\end{equation}
+so the extremal is a polynomial of degree $2r-1=1$.
+
+\subsection*{4. Additional terminal-velocity constraint}
+
+Now consider
+\begin{equation}
+    \min_{P(t)} \int_0^1 \left(P'(t)\right)^2dt
+\end{equation}
+subject to
+\begin{equation}
+    P(0)=0, \qquad P(1)=1, \qquad P'(1)=-2.
+\end{equation}
+
+\paragraph{(a) Polynomial of degree 2.}
+For
+\begin{equation}
+    P(t)=p_1t+p_2t^2,
+\end{equation}
+the constraints are
+\begin{align}
+    p_1+p_2&=1, \\
+    p_1+2p_2&=-2.
+\end{align}
+Subtracting the first equation from the second gives $p_2=-3$, and
+then $p_1=4$. Therefore,
+\begin{equation}
+    P^*(t)=4t-3t^2.
+\end{equation}
+The corresponding cost is
+\begin{align}
+    J^*
+    &=4^2+2(4)(-3)+\frac{4}{3}(-3)^2 \\
+    &=16-24+12 \\
+    &=4.
+\end{align}
+Thus,
+\begin{equation}
+    \boxed{P^*(t)=4t-3t^2, \qquad J^*=4.}
+\end{equation}
+
+\paragraph{(b) Polynomial of degree 3.}
+For
+\begin{equation}
+    P(t)=p_1t+p_2t^2+p_3t^3,
+\end{equation}
+the constraints are
+\begin{align}
+    p_1+p_2+p_3&=1, \\
+    p_1+2p_2+3p_3&=-2.
+\end{align}
+Let $x=p_3$. Solving the constraints for the remaining coefficients gives
+\begin{equation}
+    p_2=-3-2x,
+    \qquad
+    p_1=4+x.
+\end{equation}
+Substituting these expressions into the quadratic cost yields
+\begin{equation}
+    J(x)=\frac{2}{15}x^2+x+4.
+\end{equation}
+Therefore,
+\begin{equation}
+    J'(x)=\frac{4}{15}x+1.
+\end{equation}
+Setting $J'(x)=0$ gives
+\begin{equation}
+    x=p_3=-\frac{15}{4}.
+\end{equation}
+Since $J''(x)=4/15>0$, this point is the unique minimizer. The other
+coefficients are
+\begin{equation}
+    p_2=\frac{9}{2},
+    \qquad
+    p_1=\frac{1}{4}.
+\end{equation}
+Hence,
+\begin{equation}
+    P^*(t)
+    =\frac{1}{4}t
+     +\frac{9}{2}t^2
+     -\frac{15}{4}t^3.
+\end{equation}
+The constraints are satisfied because
+\begin{equation}
+    P^*(0)=0,
+    \qquad
+    P^*(1)=1,
+    \qquad
+    {P^*}'(1)=-2.
+\end{equation}
+Finally,
+\begin{align}
+    J^*
+    &=\frac{2}{15}\left(\frac{225}{16}\right)
+      -\frac{15}{4}+4 \\
+    &=\frac{17}{8}.
+\end{align}
+Therefore,
+\begin{equation}
+    \boxed{
+    P^*(t)=\frac{1}{4}t+\frac{9}{2}t^2-\frac{15}{4}t^3,
+    \qquad
+    J^*=\frac{17}{8}.}
+\end{equation}
+The cubic polynomial achieves a lower cost than the quadratic polynomial:
+\begin{equation}
+    \frac{17}{8}<4.
+\end{equation}
+
+\section*{Deliverable 2: Multi-Segment Trajectory Optimization}
+
+Let
+\begin{equation}
+    t_0<t_1<\cdots<t_k
+\end{equation}
+define $k$ trajectory segments. Segment $i$ is represented by
+$P_i(t)$, and the prescribed scalar waypoints are
+$\bar{x}_0,\bar{x}_1,\ldots,\bar{x}_k$. The following counts are for
+one scalar coordinate.
+
+\subsection*{1. Minimum snap trajectory: $r=4$}
+
+For a minimum-snap trajectory,
+\begin{equation}
+    L=\left(P^{(4)}(t)\right)^2.
+\end{equation}
+The Euler--Lagrange equation reduces to
+\begin{equation}
+    P^{(8)}(t)=0.
+\end{equation}
+Therefore, each segment is a polynomial of degree $7$ and has $8$
+coefficients. Across $k$ segments, there are $8k$ unknown coefficients.
+
+\paragraph{Waypoint constraints.}
+For each segment $i=1,\ldots,k$, impose
+\begin{equation}
+    P_i(t_{i-1})=\bar{x}_{i-1},
+    \qquad
+    P_i(t_i)=\bar{x}_i.
+\end{equation}
+There are two waypoint constraints per segment, for a total of
+\begin{equation}
+    2k
+\end{equation}
+waypoint constraints. Each internal waypoint is imposed once on the
+segment arriving at the waypoint and once on the segment leaving it.
+
+\paragraph{Free-derivative constraints.}
+At every internal waypoint $t_i$, $i=1,\ldots,k-1$, impose derivative
+continuity through order $6$:
+\begin{equation}
+    P_i^{(j)}(t_i)=P_{i+1}^{(j)}(t_i),
+    \qquad
+    j=1,\ldots,6.
+\end{equation}
+This gives
+\begin{equation}
+    6(k-1)
+\end{equation}
+free-derivative constraints.
+
+\paragraph{Fixed-derivative constraints.}
+At the initial and final times, prescribe velocity, acceleration, and jerk:
+\begin{align}
+    P_1^{(j)}(t_0)&=d_{0,j}, \\
+    P_k^{(j)}(t_k)&=d_{k,j},
+    \qquad j=1,2,3.
+\end{align}
+For a rest-to-rest trajectory, these prescribed values are normally zero.
+There are three constraints at each endpoint, giving
+\begin{equation}
+    6
+\end{equation}
+fixed-derivative constraints.
+
+The total number of constraints is therefore
+\begin{equation}
+    \boxed{
+    2k+6(k-1)+6=8k,}
+\end{equation}
+which exactly matches the number of unknown polynomial coefficients.
+
+\subsection*{2. General $r$-th derivative over $k$ segments}
+
+For the general cost functional
+\begin{equation}
+    J(P)=\sum_{i=1}^{k}
+    \int_{t_{i-1}}^{t_i}
+    \left(P_i^{(r)}(t)\right)^2dt,
+\end{equation}
+the Euler--Lagrange equation on every segment is
+\begin{equation}
+    P_i^{(2r)}(t)=0.
+\end{equation}
+Thus, each segment has degree $2r-1$ and contains $2r$ coefficients.
+The total number of unknown coefficients is
+\begin{equation}
+    2rk.
+\end{equation}
+
+The required constraints are as follows:
+\begin{itemize}
+    \item \textbf{Waypoint constraints:}
+    two endpoint-position constraints per segment, giving
+    \begin{equation}
+        2k.
+    \end{equation}
+
+    \item \textbf{Free-derivative constraints:}
+    at each of the $k-1$ internal waypoints, enforce continuity for
+    derivative orders
+    \begin{equation}
+        j=1,\ldots,2r-2.
+    \end{equation}
+    This gives
+    \begin{equation}
+        (2r-2)(k-1)
+    \end{equation}
+    free-derivative constraints.
+
+    \item \textbf{Fixed-derivative constraints:}
+    at the initial and final times, prescribe derivative orders
+    \begin{equation}
+        j=1,\ldots,r-1.
+    \end{equation}
+    This gives
+    \begin{equation}
+        2(r-1)
+    \end{equation}
+    fixed-derivative constraints.
+\end{itemize}
+
+The total number of constraints is
+\begin{align}
+    2k+(2r-2)(k-1)+2(r-1)
+    &=2k+(2r-2)k-(2r-2)+2r-2 \\
+    &=2rk.
+\end{align}
+Therefore,
+\begin{equation}
+    \boxed{
+    \begin{aligned}
+        \text{polynomial degree per segment} &:\quad 2r-1, \\
+        \text{waypoint constraints} &:\quad 2k, \\
+        \text{free-derivative constraints} &:\quad (2r-2)(k-1), \\
+        \text{fixed-derivative constraints} &:\quad 2(r-1).
+    \end{aligned}}
+\end{equation}
+
+\end{document}

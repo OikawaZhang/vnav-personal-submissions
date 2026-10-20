@@ -1,0 +1,167 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,bm,booktabs,array}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.65em}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\skew}[1]{[#1]_{\times}}
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries MIT VNAV 2023 -- Lab 2 Individual Solutions}\\[0.6em]
+{\large Wenqian Zhang \quad Student ID: 24020036087}
+\end{center}
+\hrule
+
+\section*{Deliverable 1: Nodes, Topics, and Launch Logic}
+The application nodes are \texttt{/av1broadcaster},
+\texttt{/av2broadcaster}, \texttt{/plots\_publisher\_node}, and
+\texttt{/rviz}. The two static broadcasters publish on \texttt{/tf\_static}.
+The plots node obtains transforms through its tf2 listener (which receives
+\texttt{/tf} and \texttt{/tf\_static}) and publishes the drone meshes and
+trajectory trails on \texttt{/visuals}. RViz subscribes to these transform and
+visualization topics.
+
+If the \texttt{static} argument is omitted, it takes its default value
+\texttt{false}. Thus the group guarded by \texttt{if="\$(arg static)"} is
+skipped, while the node guarded by \texttt{unless="\$(arg static)"} is
+launched. The latter is \texttt{frames\_publisher\_node}, so the vehicle
+frames move and are published continuously on \texttt{/tf}.
+
+\section*{Deliverables 2 and 3: ROS/tf Implementation}
+The submitted \texttt{two\_drones\_pkg} contains the completed source. The
+frames publisher uses one timestamp for both transforms, the elapsed ROS time
+\(t\), translations
+\[
+{}^{w}\bm{o}_1=(\cos t,\sin t,0)^T,\qquad
+{}^{w}\bm{o}_2=(\sin t,0,\cos 2t)^T,
+\]
+and the yaw quaternion \(q=\operatorname{RPY}(0,0,t)\) for AV1. The plots
+publisher obtains the newest available transform using
+\texttt{lookupTransform(ref\_frame,dest\_frame,ros::Time(0))}.
+
+\section*{Deliverable 4: Relative Trajectory}
+\subsection*{1. AV2 in the world frame}
+Because \(x=\sin t\), \(y=0\), and \(z=\cos 2t=1-2\sin^2 t\), AV2 follows
+the parabola
+\[
+y=0,\qquad z=1-2x^2,\qquad -1\le x\le 1.
+\]
+
+\subsection*{2. AV2 expressed in the AV1 frame}
+AV1 has rotation \({}^{w}R_1=R_z(t)\). Therefore
+\[
+{}^{w}T_1=\begin{bmatrix}R_z(t)&{}^{w}\bm{o}_1\\0&1\end{bmatrix},\qquad
+{}^{w}T_2=\begin{bmatrix}I&{}^{w}\bm{o}_2\\0&1\end{bmatrix},
+\]
+and
+\[
+{}^{1}T_2=({}^{w}T_1)^{-1}{}^{w}T_2
+=\begin{bmatrix}
+R_z(-t)&R_z(-t)({}^{w}\bm{o}_2-{}^{w}\bm{o}_1)\\0&1
+\end{bmatrix}.
+\]
+The relative position is consequently
+\[
+{}^{1}\bm{o}_2=
+\begin{bmatrix}
+\sin t\cos t-1\\-\sin^2t\\\cos2t
+\end{bmatrix}
+=\begin{bmatrix}
+\tfrac12\sin2t-1\\\tfrac12(\cos2t-1)\\\cos2t
+\end{bmatrix}.
+\]
+
+\subsection*{3. Plane containing the relative trajectory}
+From the last two components,
+\(z=\cos2t=2y+1\). Hence the trajectory lies in
+\[
+\Pi:\ z-2y-1=0,
+\]
+whose normal can be chosen as \(\bm{n}=(0,-2,1)^T\).
+
+\subsection*{4. A convenient coordinate frame on the plane}
+The ellipse center is
+\(\bm{p}_c=(-1,-\tfrac12,0)^T\). Choose the orthonormal basis
+\[
+\bm{e}_{x'}=\begin{bmatrix}1\\0\\0\end{bmatrix},\quad
+\bm{e}_{y'}=\frac1{\sqrt5}\begin{bmatrix}0\\1\\2\end{bmatrix},\quad
+\bm{e}_{z'}=\frac1{\sqrt5}\begin{bmatrix}0\\-2\\1\end{bmatrix}.
+\]
+After subtracting \(\bm{p}_c\) and projecting onto this basis,
+\[
+x'=\tfrac12\sin2t,\qquad
+y'=\tfrac{\sqrt5}{2}\cos2t,\qquad z'=0.
+\]
+
+\subsection*{5. Shape and semiaxes}
+Eliminating \(t\) gives
+\[
+\frac{x'^2}{(1/2)^2}+\frac{y'^2}{(\sqrt5/2)^2}=1.
+\]
+Thus the relative trajectory is an ellipse centered at \(\bm{p}_c\), with
+semiaxis lengths \(1/2\) and \(\sqrt5/2\).
+
+\section*{Deliverable 5: Quaternion Identities}
+Use scalar-last unit quaternions \(q=[\bm{q}^T,q_4]^T\) and define
+\[
+\Omega_1(q)=\begin{bmatrix}
+q_4I+\skew{\bm q}&\bm q\\-\bm q^T&q_4
+\end{bmatrix},\qquad
+\Omega_2(q)=\begin{bmatrix}
+q_4I-\skew{\bm q}&\bm q\\-\bm q^T&q_4
+\end{bmatrix}.
+\]
+These matrices represent left and right quaternion multiplication. Since
+\(\skew{\bm q}^T=-\skew{\bm q}\) and
+\(\skew{\bm q}^2=\bm q\bm q^T-\|\bm q\|^2I\), direct block
+multiplication yields
+\[
+\Omega_i(q)^T\Omega_i(q)
+=(\|\bm q\|^2+q_4^2)I_4=I_4,\qquad i\in\{1,2\}.
+\]
+Geometrically, multiplication by a unit quaternion preserves quaternion norm,
+so its matrix representation must be orthogonal.
+
+Moreover,
+\[
+\Omega_1(q)^Tq=\Omega_2(q)^Tq=
+\begin{bmatrix}\bm0\\1\end{bmatrix}=\bm e_4.
+\]
+This is the matrix form of \(q^{-1}\otimes q=q\otimes q^{-1}=1\).
+
+Finally, left multiplication and right multiplication commute as operators:
+for every quaternion \(z\), associativity gives
+\[
+x\otimes(z\otimes y)=(x\otimes z)\otimes y.
+\]
+Therefore
+\[
+\Omega_1(x)\Omega_2(y)=\Omega_2(y)\Omega_1(x).
+\]
+Replacing \(y\) by its conjugate (whose multiplication matrix is the
+transpose for a unit quaternion) also gives
+\[
+\Omega_1(x)\Omega_2(y)^T=\Omega_2(y)^T\Omega_1(x).
+\]
+
+\section*{Optional Deliverable 6: Extrinsic and Intrinsic Rotations}
+Rotations about fixed/world axes premultiply the current attitude. Applying
+\(R_0\), then \(R_1\), then \(R_2\) therefore produces
+\[
+R_{\mathrm{ext}}=R_2R_1R_0.
+\]
+Rotations about moving/body axes postmultiply the current attitude. Applying
+the same rotations in reverse order, \(R_2\), then \(R_1\), then \(R_0\),
+produces
+\[
+R_{\mathrm{int}}=I\,R_2R_1R_0=R_{\mathrm{ext}}.
+\]
+Hence an extrinsic sequence is equivalent to the reverse-order intrinsic
+sequence.
+
+\end{document}
+

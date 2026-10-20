@@ -1,0 +1,9 @@
+MIT VNAV 2023 - Lab 1, Exercise 1
+Wenqian Zhang, Student ID 24020036087
+
+File: dante.txt
+
+1. Number of newline-terminated lines (`wc -l dante.txt`): 19567
+2. Number of words (`wc -w dante.txt`): 97676
+3. Number of non-empty lines (`grep -cve '^$' dante.txt`): 14338
+

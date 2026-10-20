@@ -1,0 +1,121 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,bm,booktabs,array}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.65em}
+\newcommand{\R}{\mathbb{R}}
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries MIT VNAV 2023 -- Lab 3 Individual Solutions}\\[0.6em]
+{\large Wenqian Zhang \quad Student ID: 24020036087}
+\end{center}
+\hrule
+
+\section*{Deliverable 1: Quaternion API}
+The concise code answers are supplied in \texttt{deliverable\_1.txt}. The key
+conversions are \texttt{tf2::fromMsg}, \texttt{tf2::toMsg},
+\texttt{tf2::getYaw}, and \texttt{tf::quaternionMsgToEigen}. The scalar
+component of a \texttt{tf2::Quaternion} is returned by \texttt{getW()}.
+
+\section*{Deliverable 2A: Rank of the Quadrotor Allocation Matrix}
+Let each rotor generate thrust \(c_f\omega_i^2\bm e_3\) and reaction torque
+\(s_i c_d\omega_i^2\bm e_3\), where \(s_i\in\{+1,-1\}\) records the spin
+direction. For rotor position \(\bm\rho_i=(x_i,y_i,0)^T\), its contribution
+to the reduced wrench \((f_z,\tau_x,\tau_y,\tau_z)^T\) is
+\[
+\begin{bmatrix}c_f&c_fy_i&-c_fx_i&s_ic_d\end{bmatrix}^T\omega_i^2.
+\]
+
+Use the X configuration in the figure, with arm length \(l\), rotor order
+\(1,2,3,4\), and positions
+\[
+\bm\rho_1=\frac l{\sqrt2}(1,1,0)^T,\quad
+\bm\rho_2=\frac l{\sqrt2}(-1,1,0)^T,
+\]
+\[
+\bm\rho_3=\frac l{\sqrt2}(-1,-1,0)^T,\quad
+\bm\rho_4=\frac l{\sqrt2}(1,-1,0)^T.
+\]
+Set \(a=c_fl/\sqrt2\) and \(d=c_d\). With the normal alternating spin
+directions \((+,-,+,-)\), the nonzero part of the allocation matrix is
+\[
+\bar F_a=
+\begin{bmatrix}
+c_f&c_f&c_f&c_f\\
+a&a&-a&-a\\
+-a&a&a&-a\\
+d&-d&d&-d
+\end{bmatrix}.
+\]
+The full six-dimensional wrench matrix simply adds two zero force rows, so it
+has the same column rank as \(\bar F_a\). For \(c_f,a,d\ne0\), the four rows
+above are independent; hence
+\[
+\operatorname{rank}(F_a)=\operatorname{rank}(\bar F_a)=4.
+\]
+Thus the four squared rotor speeds independently control total thrust and the
+three body torques.
+
+In configuration (b), rotors 3 and 4 reverse direction, so the yaw-sign pattern
+becomes \((+,-,-,+)\):
+\[
+\bar F_b=
+\begin{bmatrix}
+c_f&c_f&c_f&c_f\\
+a&a&-a&-a\\
+-a&a&a&-a\\
+d&-d&-d&d
+\end{bmatrix}.
+\]
+Its last row is \(-d/a\) times its third row. The remaining three rows are
+independent, so
+\[
+\operatorname{rank}(F_b)=\operatorname{rank}(\bar F_b)=3.
+\]
+The vehicle therefore loses one independent control direction: the yaw moment
+is coupled to the pitch moment. This is why the modified vehicle cannot command
+an arbitrary four-component thrust/torque input.
+
+\section*{Deliverable 2B: Aerodynamic-Drag Compensation}
+Let \({}^{b}\bm v=({v_x},{v_y},{v_z})^T\) be body-frame velocity and let
+\(D=\operatorname{diag}(0.1,0.1,0.2)\) contain the given positive drag
+coefficients.
+The componentwise quadratic model can be written
+\[
+{}^{b}\bm F_{\mathrm{drag}}
+=-D\begin{bmatrix}v_x|v_x|\\v_y|v_y|\\v_z|v_z|\end{bmatrix}.
+\]
+If \({}^{w}R_b\) maps body coordinates to world coordinates, then
+\[
+{}^{w}\bm F_{\mathrm{drag}}
+={}^{w}R_b\,{}^{b}\bm F_{\mathrm{drag}}.
+\]
+
+Let the nominal geometric-controller force be, for example,
+\[
+\bm F_{\mathrm{nom}}
+=-K_x\bm e_x-K_v\bm e_v+mg\bm e_3+m\bm a_d.
+\]
+Since the physical dynamics contain the additional drag force, use the
+feed-forward-compensated command
+\[
+\boxed{\bm F_{\mathrm{cmd}}
+=\bm F_{\mathrm{nom}}-{}^{w}\bm F_{\mathrm{drag}}.}
+\]
+The desired thrust direction is then
+\(\bm b_{3d}=\bm F_{\mathrm{cmd}}/\|\bm F_{\mathrm{cmd}}\|\), and the scalar
+collective thrust is obtained by projecting the command onto the current body
+thrust axis (with the sign adjusted if the course uses thrust along
+\(-\bm e_3\)). This feed-forward term cancels the modeled aerodynamic force,
+reduces the steady tracking error at speed, and leaves the feedback terms to
+correct modeling errors and disturbances.
+
+\section*{Submission Scope}
+Only the individual deliverables are included here. The Lab 3 controller is a
+team deliverable and belongs in the team repository, not this personal one.
+
+\end{document}
+
